@@ -38,10 +38,40 @@ NGA <- st_read("data/geospatial/",
   st_transform(crs = 26392)
 ```
 
+## Importing Aspatial Data
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show The Code"
-#| eval: false
+wp_nga <- read_csv("data/aspatial/WPdx.csv") %>%
+  filter(`#clean_country_name` == "Nigeria")
+```
+
+## Converting Aspatial Data into Geospatial
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show The Code"
+wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
+wp_nga
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show The Code"
+wp_sf <- st_sf(wp_nga, crs=4326)
+wp_sf
+```
+
+## Projection Transformation
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show The Code"
 wp_sf <- wp_sf %>%
   st_transform(crs = 26392)
+```
+
+```{r}
+st_crs(wp_sf)
 ```
