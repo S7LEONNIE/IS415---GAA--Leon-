@@ -18,8 +18,30 @@ pacman::p_load(sf, tidyverse, funModeling)
 
 ## Importing Geospatial
 
+The geoBoundaries data set
+
 ```{r}
+#| code-fold: true
+#| code-summary: "Show The Code"
 geoNGA <- st_read("data/geospatial/",
                   layer = "geoBoundaries-NGA-ADM2") %>%
+  st_transform(crs = 26392)
+```
+
+The NGA data set
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show The Code"
+NGA <- st_read("data/geospatial/",
+                  layer = "nga_admbnda_adm2_osgof_20190417") %>%
+  st_transform(crs = 26392)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show The Code"
+#| eval: false
+wp_sf <- wp_sf %>%
   st_transform(crs = 26392)
 ```
