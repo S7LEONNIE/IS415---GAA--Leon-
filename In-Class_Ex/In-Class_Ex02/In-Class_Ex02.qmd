@@ -7,3 +7,19 @@ execute:
   warning: false
 editor: visual
 ---
+
+## Install of sf & tidyverse
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show The Code"
+pacman::p_load(sf, tidyverse, funModeling)
+```
+
+## Importing Geospatial
+
+```{r}
+geoNGA <- st_read("data/geospatial/",
+                  layer = "geoBoundaries-NGA-ADM2") %>%
+  st_transform(crs = 26392)
+```
