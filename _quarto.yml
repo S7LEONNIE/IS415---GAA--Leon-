@@ -1,0 +1,28 @@
+project:
+  type: website
+
+website:
+  title: "IS415 - GAA (Leon)"
+  navbar:
+    left:
+    - text: "Hands-On Exercise"
+      menu:
+        - text: "Hands-On Exercise 1"
+          href: "Hands-On_Ex/Hands-On_Ex01/Hands-On_Ex01.html"
+    - text: "In-Class Exercise"
+      menu:
+        - text: "In-Class Exercise 2"
+          href: "In-Class_Ex/In-Class_Ex02/In-Class_Ex02.html"
+    right:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: flatly
+    css: styles.css
+    toc: true
+
+editor: visual
+
