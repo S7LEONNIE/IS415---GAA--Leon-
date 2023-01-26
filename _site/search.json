@@ -47,5 +47,103 @@
     "title": "In-Class Exercise 2: Geospatial Data Wrangling",
     "section": "Projection Transformation",
     "text": "Projection Transformation\n\n\nShow The Code\nwp_sf <- wp_sf %>%\n  st_transform(crs = 26392)\n\n\n\nst_crs(wp_sf)\n\nCoordinate Reference System:\n  User input: EPSG:26392 \n  wkt:\nPROJCRS[\"Minna / Nigeria Mid Belt\",\n    BASEGEOGCRS[\"Minna\",\n        DATUM[\"Minna\",\n            ELLIPSOID[\"Clarke 1880 (RGS)\",6378249.145,293.465,\n                LENGTHUNIT[\"metre\",1]]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        ID[\"EPSG\",4263]],\n    CONVERSION[\"Nigeria Mid Belt\",\n        METHOD[\"Transverse Mercator\",\n            ID[\"EPSG\",9807]],\n        PARAMETER[\"Latitude of natural origin\",4,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8801]],\n        PARAMETER[\"Longitude of natural origin\",8.5,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8802]],\n        PARAMETER[\"Scale factor at natural origin\",0.99975,\n            SCALEUNIT[\"unity\",1],\n            ID[\"EPSG\",8805]],\n        PARAMETER[\"False easting\",670553.98,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8806]],\n        PARAMETER[\"False northing\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8807]]],\n    CS[Cartesian,2],\n        AXIS[\"(E)\",east,\n            ORDER[1],\n            LENGTHUNIT[\"metre\",1]],\n        AXIS[\"(N)\",north,\n            ORDER[2],\n            LENGTHUNIT[\"metre\",1]],\n    USAGE[\n        SCOPE[\"Engineering survey, topographic mapping.\"],\n        AREA[\"Nigeria between 6°30'E and 10°30'E, onshore and offshore shelf.\"],\n        BBOX[3.57,6.5,13.53,10.51]],\n    ID[\"EPSG\",26392]]"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "",
+    "text": "Show The Code\npacman::p_load(tmap, tidyverse, sf)\n\n\n\n\n\n\n\nShow The Code\nNGA_wp <- read_rds(\"data/rds/NGA_wp.rds\")"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#visualising-distribution-of-non-functional-water-point",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#visualising-distribution-of-non-functional-water-point",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Visualising Distribution of Non-Functional Water Point",
+    "text": "Visualising Distribution of Non-Functional Water Point\n\n\nShow The Code\np1 <- tm_shape(NGA_wp) +\n  tm_fill(\"wp_functional\",\n          n = 10,\n          style = \"equal\",\n          palette = \"Blues\") +\n  tm_borders(lwd = 0.1,\n             alpha = 1) +\n  tm_layout(main.title = \"Distribution of functional water point by LGAs\",\n            legend.outside = FALSE)\n\n\n\n\nShow The Code\np2 <- tm_shape(NGA_wp) +\n  tm_fill(\"total_wp\",\n          n = 10,\n          style = \"equal\",\n          palette = \"Blues\") +\n  tm_borders(lwd = 0.1,\n             alpha = 1) +\n  tm_layout(main.title = \"Distribution of total  water point by LGAs\",\n            legend.outside = FALSE)\n\n\n\ntmap_arrange(p2, p1, nrow = 1)"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#deriving-proportion-of-functional-water-points-and-non-functional-water-points",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#deriving-proportion-of-functional-water-points-and-non-functional-water-points",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Deriving Proportion of Functional Water Points and Non-Functional Water Points",
+    "text": "Deriving Proportion of Functional Water Points and Non-Functional Water Points\n\n\nShow The Code\nNGA_wp <- NGA_wp %>%\n  mutate(pct_functional = wp_functional/total_wp) %>%\n  mutate(pct_nonfunctional = wp_nonfunctional/total_wp)"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#plotting-map-of-rate",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#plotting-map-of-rate",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Plotting Map of Rate",
+    "text": "Plotting Map of Rate\n\n\nShow The Code\ntm_shape(NGA_wp) +\n  tm_fill(\"pct_functional\",\n          n = 10,\n          style = \"equal\",\n          palette = \"Blues\",\n          legend.hist = TRUE) +\n  tm_borders(lwd = 0.1,\n             alpha = 1) +\n  tm_layout(main.title = \"Rate map of functional water point by LGAs\",\n            legend.outside = TRUE)"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#percentile-map---data-preparation",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#percentile-map---data-preparation",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Percentile Map - Data Preparation",
+    "text": "Percentile Map - Data Preparation\n\nNGA_wp <- NGA_wp %>%\n  drop_na()\n\n\npercent <- c(0,.01,.1,.5,.9,.99,1)\nvar <- NGA_wp[\"pct_functional\"] %>%\n  st_set_geometry(NULL)\nquantile(var[,1], percent)\n\n       0%        1%       10%       50%       90%       99%      100% \n0.0000000 0.0000000 0.2169811 0.4791667 0.8611111 1.0000000 1.0000000"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#creating-the-get.var-function",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#creating-the-get.var-function",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Creating the get.var Function",
+    "text": "Creating the get.var Function\n\nget.var <- function(vname,df) {\n  v <- df[vname] %>% \n    st_set_geometry(NULL)\n  v <- unname(v[,1])\n  return(v)\n}"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#a-percentile-mapping-function",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#a-percentile-mapping-function",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "A Percentile Mapping Function",
+    "text": "A Percentile Mapping Function\n\npercentmap <- function(vnam, df, legtitle=NA, mtitle=\"Percentile Map\"){\n  percent <- c(0,.01,.1,.5,.9,.99,1)\n  var <- get.var(vnam, df)\n  bperc <- quantile(var, percent)\n  tm_shape(df) +\n  tm_polygons() +\n  tm_shape(df) +\n     tm_fill(vnam,\n             title=legtitle,\n             breaks=bperc,\n             palette=\"Blues\",\n          labels=c(\"< 1%\", \"1% - 10%\", \"10% - 50%\", \"50% - 90%\", \"90% - 99%\", \"> 99%\"))  +\n  tm_borders() +\n  tm_layout(main.title = mtitle, \n            title.position = c(\"right\",\"bottom\"))\n}"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#test-drive-the-percentile-mapping-function",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#test-drive-the-percentile-mapping-function",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Test Drive the Percentile Mapping Function",
+    "text": "Test Drive the Percentile Mapping Function\n\npercentmap(\"total_wp\", NGA_wp)"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#box-map",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#box-map",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Box Map",
+    "text": "Box Map\n\nggplot(data = NGA_wp,\n       aes(x = \"\",\n           y = wp_nonfunctional)) +\n  geom_boxplot()"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#creating-the-boxbreaks-function",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#creating-the-boxbreaks-function",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Creating the Boxbreaks Function",
+    "text": "Creating the Boxbreaks Function\n\nboxbreaks <- function(v,mult=1.5) {\n  qv <- unname(quantile(v))\n  iqr <- qv[4] - qv[2]\n  upfence <- qv[4] + mult * iqr\n  lofence <- qv[2] - mult * iqr\n  # initialize break points vector\n  bb <- vector(mode=\"numeric\",length=7)\n  # logic for lower and upper fences\n  if (lofence < qv[1]) {  # no lower outliers\n    bb[1] <- lofence\n    bb[2] <- floor(qv[1])\n  } else {\n    bb[2] <- lofence\n    bb[1] <- qv[1]\n  }\n  if (upfence > qv[5]) { # no upper outliers\n    bb[7] <- upfence\n    bb[6] <- ceiling(qv[5])\n  } else {\n    bb[6] <- upfence\n    bb[7] <- qv[5]\n  }\n  bb[3:5] <- qv[2:4]\n  return(bb)\n}"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#creating-the-get.var-function-1",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#creating-the-get.var-function-1",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Creating the get.var Function",
+    "text": "Creating the get.var Function\n\nget.var <- function(vname,df) {\n  v <- df[vname] %>% st_set_geometry(NULL)\n  v <- unname(v[,1])\n  return(v)\n}"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#test-drive-the-newly-created-function",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#test-drive-the-newly-created-function",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Test Drive the Newly Created Function",
+    "text": "Test Drive the Newly Created Function\n\nvar <- get.var(\"wp_nonfunctional\", NGA_wp) \nboxbreaks(var)\n\n[1] -56.5   0.0  14.0  34.0  61.0 131.5 278.0"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#boxmap-function",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#boxmap-function",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Boxmap Function",
+    "text": "Boxmap Function\n\nboxmap <- function(vnam, df, \n                   legtitle=NA,\n                   mtitle=\"Box Map\",\n                   mult=1.5){\n  var <- get.var(vnam,df)\n  bb <- boxbreaks(var)\n  tm_shape(df) +\n    tm_polygons() +\n  tm_shape(df) +\n     tm_fill(vnam,title=legtitle,\n             breaks=bb,\n             palette=\"Blues\",\n          labels = c(\"lower outlier\", \n                     \"< 25%\", \n                     \"25% - 50%\", \n                     \"50% - 75%\",\n                     \"> 75%\", \n                     \"upper outlier\"))  +\n  tm_borders() +\n  tm_layout(main.title = mtitle, \n            title.position = c(\"left\",\n                               \"top\"))\n}\n\n\ntmap_mode(\"plot\")\nboxmap(\"wp_nonfunctional\", NGA_wp)"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#recode-zero",
+    "href": "In-Class_Ex/In-Class_Ex03/In-Class_Ex03.html#recode-zero",
+    "title": "In-Class Exercise 3: Analytical Mapping",
+    "section": "Recode Zero",
+    "text": "Recode Zero\n\nNGA_wp <- NGA_wp %>%\n  mutate(wp_functional = na_if(\n    total_wp, total_wp < 0))"
   }
 ]
