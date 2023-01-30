@@ -1,0 +1,9 @@
+---
+title: "Hands-On Exercise 3: Choropleth Mapping with R"
+date: "`r Sys.Date()`"
+format: html
+execute:
+  message: false
+  warning: false
+editor: visual
+---
