@@ -11,4 +11,17 @@ execute:
 editor: visual
 ---
 
-# 1 Getting Started
+# Getting Started
+
+## Importing Modules
+
+```{r}
+pacman::p_load(maptools, sf, raster, spatstat, tmap)
+```
+
+## Importing Data
+
+```{r}
+childcare_sf <- st_read("data/child-care-services-geojson.geojson") %>%
+  st_transform(crs = 3414)
+```
