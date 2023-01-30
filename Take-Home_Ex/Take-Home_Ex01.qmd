@@ -1,5 +1,5 @@
 ---
-title: "In-Class Exercise 4: 1st Order Spatial Point Patterns Analysis Methods"
+title: "Take-Home Exercise 1"
 date: "30 January 2023"
 date-modified: "`r Sys.Date()`"
 format: html
