@@ -1,0 +1,16 @@
+{
+  "hash": "23cfb0e41f4a7c8c8d15b0eb249bf023",
+  "result": {
+    "markdown": "---\ntitle: \"Hands-On Exercise 4: 1st Order Spatial Point Patterns Analysis Methods\"\ndate: \"2023-01-30\"\ndate-modified: \"2023-01-30\"\nformat: html\nexecute:\n  message: false\n  warning: false\neditor: visual\n---\n",
+    "supporting": [
+      "Hands-On_Ex04_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
