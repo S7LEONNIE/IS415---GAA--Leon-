@@ -1,6 +1,7 @@
 ---
 title: "Hands-On Exercise 4: 1st Order Spatial Point Patterns Analysis Methods"
 date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
 format: html
 execute:
   message: false

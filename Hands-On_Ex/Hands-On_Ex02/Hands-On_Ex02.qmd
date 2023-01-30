@@ -1,6 +1,7 @@
 ---
 title: "In-Class Exercise 2: Geospatial Data Wrangling"
 date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
 format: html
 execute:
   message: false
