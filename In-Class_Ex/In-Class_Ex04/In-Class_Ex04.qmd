@@ -40,7 +40,8 @@ mpsz_sf <- st_read(dsn = "data",
 ```{r}
 tmap_mode('view')
 tm_shape(childcare_sf)+
-  tm_dots()
+  tm_dots(alph=0.5, size=0.01)+
+  tm_view(set.zoom.limits = c(11,14))
 ```
 
 ```{r}
