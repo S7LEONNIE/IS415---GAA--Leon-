@@ -99,3 +99,13 @@ plot(childcare_ppp)
 ```{r}
 summary(childcare_ppp)
 ```
+
+## Handling Duplicated Point Events
+
+```{r}
+childcare_ppp_jit <- rjitter(childcare_ppp,
+                             retry=TRUE,
+                             nsim=1,
+                             drop=TRUE)
+any(duplicated(childcare_ppp_jit))
+```

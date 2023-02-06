@@ -418,5 +418,33 @@
     "title": "Hands-On Exercise 3: Choropleth Mapping with R",
     "section": "Mapping Spatial Object Meeting a Selection Criterion",
     "text": "Mapping Spatial Object Meeting a Selection Criterion\n\ntm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N==\"CENTRAL REGION\", ])+\n  tm_fill(\"DEPENDENCY\", \n          style = \"quantile\", \n          palette = \"Blues\", \n          legend.hist = TRUE, \n          legend.is.portrait = TRUE,\n          legend.hist.z = 0.1) +\n  tm_layout(legend.outside = TRUE,\n            legend.height = 0.45, \n            legend.width = 5.0,\n            legend.position = c(\"right\", \"bottom\"),\n            frame = FALSE) +\n  tm_borders(alpha = 0.5)"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex05/In-Class_Ex05.html",
+    "href": "In-Class_Ex/In-Class_Ex05/In-Class_Ex05.html",
+    "title": "In-Class Exercise 5: Advanced Spatial Point Patterns Analysis: Local Co-Location Quotient",
+    "section": "",
+    "text": "pacman::p_load(tidyverse, tmap, sf, sfdep)\n\n\n\n\n\nstudyArea <- st_read(dsn=\"data\",\n                     layer=\"study_area\") %>%\n  st_transform(crs = 3829)\n\nReading layer `study_area' from data source \n  `C:\\Users\\la935\\Desktop\\IS415 - GAA\\IS415 - GAA (New)\\In-Class_Ex\\In-Class_Ex05\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 7 features and 7 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 121.4836 ymin: 25.00776 xmax: 121.592 ymax: 25.09288\nGeodetic CRS:  TWD97\n\n\n\nstores <- st_read(dsn=\"data\",\n                  layer = \"stores\") %>%\n  st_transform(crs = 3829)\n\nReading layer `stores' from data source \n  `C:\\Users\\la935\\Desktop\\IS415 - GAA\\IS415 - GAA (New)\\In-Class_Ex\\In-Class_Ex05\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 1409 features and 4 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 121.4902 ymin: 25.01257 xmax: 121.5874 ymax: 25.08557\nGeodetic CRS:  TWD97\n\n\n\n\n\n\ntmap_mode(\"view\")\ntm_shape(studyArea) +\n  tm_polygons() +\ntm_shape(stores) +\n  tm_dots(col = \"Name\",\n          size = 0.01,\n          border.col = \"black\",\n          border.lwd = 0.5) +\n  tm_view(set.zoom.limits = c(12, 16))"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex04/In-Class_Ex04.html#handling-duplicated-point-events",
+    "href": "In-Class_Ex/In-Class_Ex04/In-Class_Ex04.html#handling-duplicated-point-events",
+    "title": "In-Class Exercise 4: 1st Order Spatial Point Patterns Analysis Methods",
+    "section": "Handling Duplicated Point Events",
+    "text": "Handling Duplicated Point Events\n\nchildcare_ppp_jit <- rjitter(childcare_ppp,\n                             retry=TRUE,\n                             nsim=1,\n                             drop=TRUE)\nany(duplicated(childcare_ppp_jit))\n\n[1] FALSE"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex05/data/stores.html",
+    "href": "In-Class_Ex/In-Class_Ex05/data/stores.html",
+    "title": "IS415 - GAA (Leon)",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>     \n\n\n        0 0     false"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex05/data/study_area.html",
+    "href": "In-Class_Ex/In-Class_Ex05/data/study_area.html",
+    "title": "IS415 - GAA (Leon)",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>     dataset\n\n\n        0 0     false"
   }
 ]

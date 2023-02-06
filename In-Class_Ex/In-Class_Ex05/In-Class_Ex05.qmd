@@ -1,0 +1,99 @@
+---
+title: "In-Class Exercise 5: Advanced Spatial Point Patterns Analysis: Local Co-Location Quotient "
+date: "6 February 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute:
+  eval: true
+  echo: true
+  message: false
+  warning: false
+editor: visual
+---
+
+# Getting Started
+
+## Importing Module
+
+```{r}
+pacman::p_load(tidyverse, tmap, sf, sfdep)
+```
+
+## Importing Data
+
+```{r}
+studyArea <- st_read(dsn="data",
+                     layer="study_area") %>%
+  st_transform(crs = 3829)
+```
+
+```{r}
+stores <- st_read(dsn="data",
+                  layer = "stores") %>%
+  st_transform(crs = 3829)
+```
+
+## Visualising The SF Layers
+
+```{r}
+tmap_mode("view")
+tm_shape(studyArea) +
+  tm_polygons() +
+tm_shape(stores) +
+  tm_dots(col = "Name",
+          size = 0.01,
+          border.col = "black",
+          border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(12, 16))
+```
+
+# Local Colocation Quotients (LCLQ)
+
+```{r}
+nb <- include_self(
+  st_knn(st_geometry(stores), 6))
+
+#Use even number to avoid 50/50 results
+```
+
+```{r}
+wt <- st_kernel_weights(nb,
+                        stores,
+                        "gaussian",
+                        adaptive = TRUE)
+
+#Higher the weight, the nearer the point
+```
+
+```{r}
+FamilyMart <- stores %>%
+  filter(Name == "Family Mart")
+A <- FamilyMart$Name
+```
+
+```{r}
+SevenEleven <- stores %>%
+  filter(Name == "7-Eleven")
+B <- SevenEleven$Name
+```
+
+```{r}
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+
+#Running 50 simulation
+```
+
+```{r}
+LCLQ_stores <- cbind(stores, LCLQ)
+
+#cbind only works when the table structure is not changed (aka filter)
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(studyArea) +
+  tm_polygons() +
+tm_shape(LCLQ_stores) +
+  tm_dots(col = "X7.Eleven", size=0.01) +
+  tm_view(set.zoom.limits = c(12,14))
+```
