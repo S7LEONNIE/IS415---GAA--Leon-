@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Exercise 1"
+title: "Take-Home Exercise 1: Application of Spatial Point Patterns Analysis to Discover the Geographical Distribution of Functional and Non-Function Water Points in Osun State, Nigeria"
 date: "30 January 2023"
 date-modified: "`r Sys.Date()`"
 format: html
@@ -10,3 +10,404 @@ execute:
   warning: false
 editor: visual
 ---
+
+# 1 Getting Started
+
+## 1.1 Importing Modules
+
+```{r}
+pacman::p_load(tidyverse, funModeling, tmap, sf, sfdep, maptools, raster, spatstat)
+```
+
+## 1.2 Importing Data
+
+### 1.2.1 Geospatial Data
+
+#### 1.2.1.1 The geoBoundaries data set
+
+```{r}
+geoNGA <- st_read("data/geospatial/",
+                  layer = "geoBoundaries-NGA-ADM2") %>%
+  st_transform(crs = 26392)
+```
+
+#### 1.2.1.2 The NGA data set
+
+```{r}
+NGA <- st_read("data/geospatial/",
+                  layer = "nga_admbnda_adm2_osgof_20190417") %>%
+  st_transform(crs = 26392)
+```
+
+### 1.2.2 Aspatial Data
+
+```{r}
+wp_nga <- read_csv("data/aspatial/WPdx.csv")
+```
+
+#### 1.2.2.1 Converting water point data into sf point features
+
+```{r}
+wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
+wp_nga
+```
+
+```{r}
+wp_sf <- st_sf(wp_nga, crs=4326)
+wp_sf
+```
+
+#### 1.2.2.2 Transforming into Nigeria projected coordinate system
+
+```{r}
+wp_sf <- wp_sf %>%
+  st_transform(crs = 26392)
+```
+
+# 2 Geospatial Data Cleaning
+
+## 2.1 Excluding Redundant Fields
+
+```{r}
+NGA <- NGA %>%
+  dplyr::select(c(3:4, 8:9))
+```
+
+## 2.2 Checking for Duplicate Name
+
+```{r}
+NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+```
+
+```{r}
+NGA$ADM2_EN[94] <- "Bassa, Kogi"
+NGA$ADM2_EN[95] <- "Bassa, Plateau"
+NGA$ADM2_EN[304] <- "Ifelodun, Kwara"
+NGA$ADM2_EN[305] <- "Ifelodun, Osun"
+NGA$ADM2_EN[355] <- "Irepodun, Kwara"
+NGA$ADM2_EN[356] <- "Irepodun, Osun"
+NGA$ADM2_EN[519] <- "Nasarawa, Kano"
+NGA$ADM2_EN[520] <- "Nasarawa, Nasarawa"
+NGA$ADM2_EN[546] <- "Obi, Benue"
+NGA$ADM2_EN[547] <- "Obi, Nasarawa"
+NGA$ADM2_EN[693] <- "Surulere, Lagos"
+NGA$ADM2_EN[694] <- "Surulere, Oyo"
+```
+
+```{r}
+NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+```
+
+# 3 Data Wrangling for Water Point Data
+
+```{r}
+funModeling::freq(data = wp_sf,
+     input = '#status_clean')
+```
+
+```{r}
+wp_sf_nga <- wp_sf %>% 
+  rename(status_clean = '#status_clean') %>%
+  dplyr::select(status_clean) %>%
+  mutate(status_clean = replace_na(
+    status_clean, "unknown"))
+```
+
+## 3.1 Extracting Water Point Data
+
+```{r}
+wp_functional <- wp_sf_nga %>%
+  filter(status_clean %in%
+           c("Functional",
+             "Functional but not in use",
+             "Functional but needs repair",
+             "Functional, needs repair",
+             "Functional, not in use"))
+```
+
+```{r}
+wp_nonfunctional <- wp_sf_nga %>%
+  filter(status_clean %in%
+           c("Abandoned/Decommissioned",
+             "Non-Functional due to dry season",
+             "Non-Functional",
+             "Non-functional, dry"))
+```
+
+```{r}
+wp_unknown <- wp_sf_nga %>%
+  filter(status_clean == "unknown")
+```
+
+```{r}
+funModeling::freq(data = wp_functional,
+     input = 'status_clean')
+```
+
+```{r}
+funModeling::freq(data = wp_nonfunctional,
+     input = 'status_clean')
+```
+
+```{r}
+funModeling::freq(data = wp_unknown,
+     input = 'status_clean')
+```
+
+## 3.2 Performing Point-in-Polygon Count
+
+```{r}
+NGA_wp <- NGA %>% 
+  mutate(`total_wp` = lengths(
+    st_intersects(NGA, wp_sf_nga))) %>%
+  mutate(`wp_functional` = lengths(
+    st_intersects(NGA, wp_functional))) %>%
+  mutate(`wp_nonfunctional` = lengths(
+    st_intersects(NGA, wp_nonfunctional))) %>%
+  mutate(`wp_unknown` = lengths(
+    st_intersects(NGA, wp_unknown)))
+```
+
+## 3.3 Visualising Attributes by Using Statistical Graphs
+
+```{r}
+ggplot(data = NGA_wp,
+       aes(x = total_wp)) + 
+  geom_histogram(bins=20,
+                 color="black",
+                 fill="light blue") +
+  geom_vline(aes(xintercept=mean(
+    total_wp, na.rm=T)),
+             color="red", 
+             linetype="dashed", 
+             size=0.8) +
+  ggtitle("Distribution of total water points by LGA") +
+  xlab("No. of water points") +
+  ylab("No. of\nLGAs") +
+  theme(axis.title.y=element_text(angle = 0))
+```
+
+## 3.4 Saving The Analytical Data in rds Format
+
+```{r}
+write_rds(NGA_wp, "data/rds/NGA_wp.rds")
+```
+
+# 4 Basic Choropleth Mapping
+
+## 4.1 Visualising Distribution of Functional Water Point
+
+```{r}
+p1 <- tm_shape(NGA_wp) +
+  tm_fill("wp_functional",
+          n = 10,
+          style = "equal",
+          palette = "Blues") +
+  tm_borders(lwd = 0.1,
+             alpha = 1) +
+  tm_layout(main.title = "Distribution of functional water point by LGAs",
+            legend.outside = FALSE)
+```
+
+```{r}
+p2 <- tm_shape(NGA_wp) +
+  tm_fill("total_wp",
+          n = 10,
+          style = "equal",
+          palette = "Blues") +
+  tm_borders(lwd = 0.1,
+             alpha = 1) +
+  tm_layout(main.title = "Distribution of total  water point by LGAs",
+            legend.outside = FALSE)
+```
+
+```{r}
+tmap_arrange(p2, p1, nrow = 1)
+```
+
+```{r}
+osun_data <- subset(NGA_wp, ADM1_EN == "Osun")
+```
+
+```{r}
+head(osun_data)
+```
+
+```{r}
+tm_shape(osun_data) +
+  tm_fill("wp_functional",
+          n = 10,
+          style = "equal",
+          palette = "Blues")
+```
+
+```{r}
+tm_shape(osun_data) +
+  tm_fill("wp_nonfunctional",
+          n = 10,
+          style = "equal",
+          palette = "Blues")
+```
+
+```{r}
+osun <- as_Spatial(osun_data)
+```
+
+```{r}
+osun
+```
+
+```{r}
+osun_sp <- as(osun, "SpatialPolygons")
+```
+
+```{r}
+osun_sp
+```
+
+```{r}
+osun_owin <- as(osun_sp, "owin")
+```
+
+```{r}
+plot(osun_owin)
+```
+
+```{r}
+functional <- as_Spatial(wp_functional)
+```
+
+```{r}
+nonfunctional <- as_Spatial(wp_nonfunctional)
+```
+
+```{r}
+functional
+```
+
+```{r}
+nonfunctional
+```
+
+```{r}
+functional_sp <- as(functional, "SpatialPoints")
+```
+
+```{r}
+nonfunctional_sp <- as(nonfunctional, "SpatialPoints")
+```
+
+```{r}
+functional_sp
+```
+
+```{r}
+nonfunctional_sp
+```
+
+```{r}
+functional_ppp <- as(functional_sp, "ppp")
+functional_ppp
+```
+
+```{r}
+nonfunctional_ppp <- as(nonfunctional_sp, "ppp")
+nonfunctional_ppp
+```
+
+```{r}
+plot(functional_ppp)
+```
+
+```{r}
+plot(nonfunctional_ppp)
+```
+
+```{r}
+any(duplicated(functional_ppp))
+```
+
+```{r}
+multiplicity(functional_ppp)
+```
+
+```{r}
+sum(multiplicity(functional_ppp) > 1)
+```
+
+```{r}
+functional_ppp_jit <- rjitter(functional_ppp,
+                              retry=TRUE,
+                              nsim=1,
+                              drop=TRUE)
+```
+
+```{r}
+any(duplicated(functional_ppp_jit))
+```
+
+```{r}
+functionalOsun_ppp = functional_ppp[osun_owin]
+```
+
+```{r}
+plot(functionalOsun_ppp)
+```
+
+```{r}
+nonfunctionalOsun_ppp = nonfunctional_ppp[osun_owin]
+```
+
+```{r}
+functionalOsun_ppp.km <- rescale(functionalOsun_ppp, 1000, "km")
+```
+
+```{r}
+nonfunctionalOsun_ppp.km <- rescale(nonfunctionalOsun_ppp, 1000, "km")
+```
+
+```{r}
+kde_functionalOsun_bw <- density(functionalOsun_ppp.km,
+                                 sigma=2,
+                                 edge=TRUE,
+                                 kernel="gaussian")
+```
+
+```{r}
+plot(kde_functionalOsun_bw)
+```
+
+```{r}
+kde_nonfunctionalOsun_bw <- density(nonfunctionalOsun_ppp.km,
+                                 sigma=2,
+                                 edge=TRUE,
+                                 kernel="gaussian")
+```
+
+```{r}
+plot(kde_nonfunctionalOsun_bw)
+```
+
+```{r}
+gridded_kde_functionalOsun_bw <- as.SpatialGridDataFrame.im(kde_functionalOsun_bw)
+spplot(gridded_kde_functionalOsun_bw)
+```
+
+```{r}
+kde_functionalOsun_bw_raster <- raster(gridded_kde_functionalOsun_bw)
+```
+
+```{r}
+kde_functionalOsun_bw_raster
+```
+
+```{r}
+projection(kde_functionalOsun_bw_raster) <- CRS("+init=EPSG:26392")
+kde_functionalOsun_bw_raster
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(kde_functionalOsun_bw_raster) +
+  tm_raster()
+```
