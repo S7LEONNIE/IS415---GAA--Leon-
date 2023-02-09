@@ -225,6 +225,8 @@ p2 <- tm_shape(NGA_wp) +
 tmap_arrange(p2, p1, nrow = 1)
 ```
 
+# 5 Filter Data to Osun State
+
 ```{r}
 osun_data <- subset(NGA_wp, ADM1_EN == "Osun")
 ```
@@ -232,6 +234,8 @@ osun_data <- subset(NGA_wp, ADM1_EN == "Osun")
 ```{r}
 head(osun_data)
 ```
+
+## 5.1 Osun State Functional Water Points
 
 ```{r}
 tm_shape(osun_data) +
@@ -241,6 +245,8 @@ tm_shape(osun_data) +
           palette = "Blues")
 ```
 
+## 5.2 Osun State Non-Functional Water Points
+
 ```{r}
 tm_shape(osun_data) +
   tm_fill("wp_nonfunctional",
@@ -249,28 +255,12 @@ tm_shape(osun_data) +
           palette = "Blues")
 ```
 
+# 6 Geospatial Data Wrangling
+
+## 6.1 Converting sf Data Frames to sp's Spatial\* class
+
 ```{r}
 osun <- as_Spatial(osun_data)
-```
-
-```{r}
-osun
-```
-
-```{r}
-osun_sp <- as(osun, "SpatialPolygons")
-```
-
-```{r}
-osun_sp
-```
-
-```{r}
-osun_owin <- as(osun_sp, "owin")
-```
-
-```{r}
-plot(osun_owin)
 ```
 
 ```{r}
@@ -282,11 +272,21 @@ nonfunctional <- as_Spatial(wp_nonfunctional)
 ```
 
 ```{r}
+osun
+```
+
+```{r}
 functional
 ```
 
 ```{r}
 nonfunctional
+```
+
+## 6.2 Converting the Spatial\* Class into Generic sp Format
+
+```{r}
+osun_sp <- as(osun, "SpatialPolygons")
 ```
 
 ```{r}
@@ -298,6 +298,10 @@ nonfunctional_sp <- as(nonfunctional, "SpatialPoints")
 ```
 
 ```{r}
+osun_sp
+```
+
+```{r}
 functional_sp
 ```
 
@@ -305,9 +309,12 @@ functional_sp
 nonfunctional_sp
 ```
 
+## 6.3 Converting the Generic sp Format into Spatstat's ppp Format
+
 ```{r}
 functional_ppp <- as(functional_sp, "ppp")
 functional_ppp
+
 ```
 
 ```{r}
@@ -323,20 +330,17 @@ plot(functional_ppp)
 plot(nonfunctional_ppp)
 ```
 
-```{r}
-any(duplicated(functional_ppp))
-```
-
-```{r}
-multiplicity(functional_ppp)
-```
-
-```{r}
-sum(multiplicity(functional_ppp) > 1)
-```
+## 6.4 Handling Duplicated Points
 
 ```{r}
 functional_ppp_jit <- rjitter(functional_ppp,
+                              retry=TRUE,
+                              nsim=1,
+                              drop=TRUE)
+```
+
+```{r}
+nonfunctional_ppp_jit <- rjitter(nonfunctional_ppp,
                               retry=TRUE,
                               nsim=1,
                               drop=TRUE)
@@ -347,33 +351,56 @@ any(duplicated(functional_ppp_jit))
 ```
 
 ```{r}
-functionalOsun_ppp = functional_ppp[osun_owin]
+any(duplicated(nonfunctional_ppp_jit))
+```
+
+## 6.5 Creating owin Object
+
+```{r}
+osun_owin <- as(osun_sp, "owin")
 ```
 
 ```{r}
-plot(functionalOsun_ppp)
+plot(osun_owin)
+```
+
+## 6.6 Combining Point Events Object and owin Object
+
+```{r}
+functionalOsun_ppp_jit = functional_ppp_jit[osun_owin]
 ```
 
 ```{r}
-nonfunctionalOsun_ppp = nonfunctional_ppp[osun_owin]
+nonfunctionalOsun_ppp_jit = nonfunctional_ppp_jit[osun_owin]
 ```
 
 ```{r}
-functionalOsun_ppp.km <- rescale(functionalOsun_ppp, 1000, "km")
+plot(functionalOsun_ppp_jit)
 ```
 
 ```{r}
-nonfunctionalOsun_ppp.km <- rescale(nonfunctionalOsun_ppp, 1000, "km")
+plot(nonfunctionalOsun_ppp_jit)
 ```
+
+# 7 First-Order Spatial Point Patterns Analysis
+
+## 7.1 Rescalling KDE Values
+
+```{r}
+functionalOsun_ppp.km <- rescale(functionalOsun_ppp_jit, 1000, "km")
+```
+
+```{r}
+nonfunctionalOsun_ppp.km <- rescale(nonfunctionalOsun_ppp_jit, 1000, "km")
+```
+
+## 7.2 Kernel Density Estimation
 
 ```{r}
 kde_functionalOsun_bw <- density(functionalOsun_ppp.km,
                                  sigma=2,
                                  edge=TRUE,
                                  kernel="gaussian")
-```
-
-```{r}
 plot(kde_functionalOsun_bw)
 ```
 
@@ -382,15 +409,19 @@ kde_nonfunctionalOsun_bw <- density(nonfunctionalOsun_ppp.km,
                                  sigma=2,
                                  edge=TRUE,
                                  kernel="gaussian")
-```
-
-```{r}
 plot(kde_nonfunctionalOsun_bw)
 ```
+
+## 7.3 Converting KDE Output into Grid Object
 
 ```{r}
 gridded_kde_functionalOsun_bw <- as.SpatialGridDataFrame.im(kde_functionalOsun_bw)
 spplot(gridded_kde_functionalOsun_bw)
+```
+
+```{r}
+gridded_kde_nonfunctionalOsun_bw <- as.SpatialGridDataFrame.im(kde_nonfunctionalOsun_bw)
+spplot(gridded_kde_nonfunctionalOsun_bw)
 ```
 
 ```{r}
@@ -407,7 +438,73 @@ kde_functionalOsun_bw_raster
 ```
 
 ```{r}
-tmap_mode("view")
-tm_shape(kde_functionalOsun_bw_raster) +
-  tm_raster()
+tm_shape(kde_functionalOsun_bw_raster) + 
+  tm_raster("v") +
+  tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
 ```
+
+## 7.4 Kernel Density vs Point Map
+
+### 7.4.1 Importing and Filtering of Data for Point Map
+
+```{r}
+wp_nga_filter <- read_csv("data/aspatial/WPdx.csv")
+```
+
+```{r}
+wp_nga_filter <- wp_nga_filter %>% 
+  rename(clean_adm1 = '#clean_adm1')
+```
+
+```{r}
+wp_nga_filter <- wp_nga_filter %>% 
+  rename(status_clean = '#status_clean')
+```
+
+```{r}
+wp_nga_filter <- subset(wp_nga_filter, clean_adm1 == "Osun")
+```
+
+```{r}
+wp_nga_filter$Geometry = st_as_sfc(wp_nga_filter$`New Georeferenced Column`)
+wp_nga_filter
+```
+
+```{r}
+wp_nga_filter <- st_sf(wp_nga_filter, crs=4326)
+wp_nga_filter
+```
+
+```{r}
+wp_nga_filter <- wp_nga_filter %>%
+  st_transform(crs = 26392)
+```
+
+```{r}
+wp_nga_filter <- wp_nga_filter %>%
+  filter(status_clean == "Functional" | status_clean == "Functional but not in use" | status_clean == "Functional but needs repair" | status_clean == "Functional, needs repair" | status_clean == "Functional, not in use")
+```
+
+### 7.4.2 Point Map
+
+```{r}
+wp_nga_filter_point <- tmap_mode("view")
+  tm_shape(wp_nga_filter) +
+  tm_dots(col = "status_clean",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(9,11))
+```
+
+### 7.4.3 KDE Map
+
+```{r}
+plot(kde_functionalOsun_bw)
+```
+
+::: callout-important
+## Advantages:
+
+-   Kernel density map provides a continuous representation of the distribution of the data points, while a point map can become cluttered and difficult to interpret when the number of data points is large.
+:::
