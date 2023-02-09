@@ -508,3 +508,34 @@ plot(kde_functionalOsun_bw)
 
 -   Kernel density map provides a continuous representation of the distribution of the data points, while a point map can become cluttered and difficult to interpret when the number of data points is large.
 :::
+
+# 8 Second-Order Spatial Point Patterns Analysis
+
+## 8.1 Analysing Spatial Point Process Using G-Function
+
+### 8.1.1 Computing G-Function Estimation (Functional Water Points)
+
+```{r}
+G_CK = Gest(functionalOsun_ppp_jit, correction = "border")
+plot(G_CK, xlim=c(0,500))
+```
+
+### 8.1.2 Performing Complete Spatial Randomness Test
+
+To confirm the observed spatial patterns above, a hypothesis test will be conducted. The hypothesis and test are as follows:
+
+Ho = The distribution of functional water points at Osun State, Nigeria, are randomly distributed.
+
+H1= The distribution of functional water points at Osun State, Nigeria are not randomly distributed.
+
+The null hypothesis will be rejected if p-value is smaller than alpha value of 0.001.
+
+Monte Carlo test with G-fucntion
+
+```{r}
+G_CK.csr <- envelope(functionalOsun_ppp_jit, Gest, nsim = 999)
+```
+
+```{r}
+plot(G_CK.csr)
+```
