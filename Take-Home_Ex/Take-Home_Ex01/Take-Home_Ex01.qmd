@@ -481,7 +481,7 @@ wp_nga_filter <- wp_nga_filter %>%
 ```
 
 ```{r}
-wp_nga_filter <- wp_nga_filter %>%
+wp_nga_filterpoint <- wp_nga_filter %>%
   filter(status_clean == "Functional" | status_clean == "Functional but not in use" | status_clean == "Functional but needs repair" | status_clean == "Functional, needs repair" | status_clean == "Functional, not in use")
 ```
 
@@ -489,7 +489,7 @@ wp_nga_filter <- wp_nga_filter %>%
 
 ```{r}
 wp_nga_filter_point <- tmap_mode("view")
-  tm_shape(wp_nga_filter) +
+  tm_shape(wp_nga_filterpoint) +
   tm_dots(col = "status_clean",
              size = 0.01,
              border.col = "black",
@@ -516,8 +516,8 @@ plot(kde_functionalOsun_bw)
 ### 8.1.1 Computing G-Function Estimation (Functional Water Points)
 
 ```{r}
-G_CK = Gest(functionalOsun_ppp_jit, correction = "border")
-plot(G_CK, xlim=c(0,500))
+G_Functional = Gest(functionalOsun_ppp_jit, correction = "border")
+plot(G_Functional, xlim=c(0,500))
 ```
 
 ### 8.1.2 Performing Complete Spatial Randomness Test
@@ -533,9 +533,83 @@ The null hypothesis will be rejected if p-value is smaller than alpha value of 0
 Monte Carlo test with G-fucntion
 
 ```{r}
-G_CK.csr <- envelope(functionalOsun_ppp_jit, Gest, nsim = 999)
+G_Functional.csr <- envelope(functionalOsun_ppp_jit, Gest, nsim = 999)
 ```
 
 ```{r}
-plot(G_CK.csr)
+plot(G_Functional.csr)
+```
+
+# 9 Local Colocation Quotients (LCLQ)
+
+## 9.1 Preparing Nearest Neighbours List
+
+```{r}
+wp_sf_osun <- wp_sf %>% 
+  rename(status_clean = '#status_clean') %>%
+  rename(lat = '#lat_deg') %>%
+  rename(lng = '#lon_deg') %>%
+  rename(clean_adm1 = '#clean_adm1') %>%
+  mutate(status_clean = replace_na(
+    status_clean, "unknown"))
+```
+
+```{r}
+wp_sf_osunfilter <- subset(wp_sf_osun, clean_adm1 == "Osun")
+```
+
+```{r}
+wp_sf_osunfilter <- wp_sf_osunfilter %>%
+  dplyr::select(status_clean, lat, lng)
+```
+
+```{r}
+nb <- include_self(
+  st_knn(st_geometry(wp_sf_osunfilter), 6))
+```
+
+```{r}
+wt <- st_kernel_weights(nb, 
+                        wp_sf_osunfilter, 
+                        "gaussian", 
+                        adaptive = TRUE)
+```
+
+```{r}
+functionalWp <- wp_sf_osunfilter %>%
+  filter(status_clean %in%
+           c("Functional",
+             "Functional but not in use",
+             "Functional but needs repair",
+             "Functional, needs repair",
+             "Functional, not in use"))
+A <- functionalWp$status_clean
+```
+
+```{r}
+nonfunctionalWp <- wp_sf_osunfilter %>%
+  filter(status_clean %in%
+           c("Abandoned/Decommissioned",
+             "Non-Functional due to dry season",
+             "Non-Functional",
+             "Non-functional, dry"))
+B <- nonfunctionalWp$status_clean
+```
+
+```{r}
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+```{r}
+LCLQ_WP <- cbind(wp_sf_osunfilter, LCLQ)
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(LCLQ_WP)+ 
+  tm_dots(col = "Non.Functional",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(9, 16))
 ```
