@@ -577,7 +577,8 @@ r1 <- tmap_mode("view") +
   tm_shape(kde_functionalOsun_bw_raster) + 
   tm_raster("v") +
   tm_layout(legend.position = c("right", "bottom"), frame = FALSE) +
-  tm_layout(title = "Functional")
+  tm_layout(title = "Functional") +
+  tm_view(set.zoom.limits = c(8,11))
 ```
 
 ```{r}
@@ -585,7 +586,8 @@ r2 <- tmap_mode("view") +
   tm_shape(kde_nonfunctionalOsun_bw_raster) + 
   tm_raster("v") +
   tm_layout(legend.position = c("right", "bottom"), frame = FALSE) +
-  tm_layout(title = "Non-Functional")
+  tm_layout(title = "Non-Functional") +
+  tm_view(set.zoom.limits = c(8,11))
 ```
 
 ```{r}
@@ -678,7 +680,11 @@ G_Functional.csr <- envelope(functionalOsun_ppp_jit, Gest, nsim = 999)
 plot(G_Functional.csr)
 ```
 
-Results: The observed G(r) is above the G(theo) and above the envelope. This shows that the functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State, Nigeria are randomly distributed.
+::: callout-important
+## Results:
+
+The observed G(r) is above the G(theo) and above the envelope. This shows that the functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State, Nigeria are randomly distributed.
+:::
 
 ------------------------------------------------------------------------
 
@@ -713,7 +719,11 @@ G_Nonfunctional.csr <- envelope(nonfunctionalOsun_ppp_jit, Gest, nsim = 999)
 plot(G_Nonfunctional.csr)
 ```
 
-Results: The observed G(r) is above the G(theo) and above the envelope. This shows that the non-functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State, Nigeria are randomly distributed.
+::: callout-important
+## Results:
+
+The observed G(r) is above the G(theo) and above the envelope. This shows that the non-functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State, Nigeria are randomly distributed.
+:::
 
 ------------------------------------------------------------------------
 
@@ -758,7 +768,11 @@ plot(L_wp.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 
 ![Functional Water Point - After Complete Spatial Randomness Test](img/unnamed-chunk-82-1.png)
 
-Results: The observed L(r) is above the L(theo) and above the envelope. This shows that the functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State, Nigeria are randomly distributed.
+::: callout-important
+## Results:
+
+The observed L(r) is above the L(theo) and above the envelope. This shows that the functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State, Nigeria are randomly distributed.
+:::
 
 ------------------------------------------------------------------------
 
@@ -801,7 +815,11 @@ plot(L_nfwp.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 
 ![Non-Functional Water Points - After Complete Spatial Randomness Test](img/unnamed-chunk-80-1.png)
 
-Results: The observed L(r) is above the L(theo) and above the envelope. This shows that the functional water points are clustered, hence rejecting the null hypothesis that the non-functional water points in Osun State, Nigeria are randomly distributed.
+::: callout-important
+## Results:
+
+The observed L(r) is above the L(theo) and above the envelope. This shows that the functional water points are clustered, hence rejecting the null hypothesis that the non-functional water points in Osun State, Nigeria are randomly distributed.
+:::
 
 ------------------------------------------------------------------------
 
@@ -828,12 +846,16 @@ wp_sf_osunfilter <- wp_sf_osunfilter %>%
   dplyr::select(status_clean, lat, lng)
 ```
 
+------------------------------------------------------------------------
+
 ## 10.2 Preparing Nearest Neighbours List
 
 ```{r}
 nb <- include_self(
   st_knn(st_geometry(wp_sf_osunfilter), 6))
 ```
+
+------------------------------------------------------------------------
 
 ## 10.3 Computing Kernel Weights
 
@@ -843,6 +865,8 @@ wt <- st_kernel_weights(nb,
                         "gaussian", 
                         adaptive = TRUE)
 ```
+
+------------------------------------------------------------------------
 
 ## 10.4 Preparing the Vector List
 
@@ -867,17 +891,23 @@ nonfunctionalWp <- wp_sf_osunfilter %>%
 B <- nonfunctionalWp$status_clean
 ```
 
+------------------------------------------------------------------------
+
 ## 10.5 Computing LCLQ
 
 ```{r}
 LCLQ <- local_colocation(A, B, nb, wt, 39)
 ```
 
+------------------------------------------------------------------------
+
 ## 10.6 Joining Output Table
 
 ```{r}
 LCLQ_WP <- cbind(wp_sf_osunfilter, LCLQ)
 ```
+
+------------------------------------------------------------------------
 
 ## 10.7 Plotting LCLQ Values
 
@@ -891,4 +921,10 @@ tm_shape(LCLQ_WP)+
   tm_view(set.zoom.limits = c(9, 16))
 ```
 
-Results: When the Colocation Analysis tool is run, it adds two fields to the resulting Output Features. As observed in the above figure, the Local Colocation Quotient is 1.007 which is greater than 1. Hence, features of the Category of Interest (Functional Water Point) are more likely to have features of the Neighbouring Category (Non-Functional Water Point) within their neighbourhood.
+::: callout-important
+## Results:
+
+When the Colocation Analysis tool is run, it adds two fields to the resulting Output Features. As observed in the above figure, the Local Colocation Quotient is 1.007 which is greater than 1. Hence, features of the Category of Interest (Functional Water Point) are more likely to have features of the Neighbouring Category (Non-Functional Water Point) within their neighbourhood.
+:::
+
+------------------------------------------------------------------------
