@@ -42,7 +42,9 @@ website:
 
 format:
   html:
-    theme: morph
+    theme: 
+      light: [morph, theme.scss]
+      dark: [morph, theme-dark.scss]
     css: styles.css
     toc: true
 
