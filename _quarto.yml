@@ -43,8 +43,8 @@ website:
 format:
   html:
     theme: 
-      light: [morph, theme.scss]
-      dark: [morph, theme-dark.scss]
+      light: [flatly]
+      dark: [darkly]
     css: styles.css
     toc: true
 
