@@ -1,0 +1,194 @@
+---
+title: "Take-Home Exercise 2: Spatio-temporal Analysis of COVID-19 Vaccination Trends at the Sub-district Level, DKI Jakarta"
+date: "16 February 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute:
+  eval: true
+  echo: true
+  message: false
+  warning: false
+editor: visual
+---
+
+# 1 Introduction
+
+## 1.1 Background
+
+Since late December 2019, an outbreak of a novel coronavirus disease (COVID-19; previously known as 2019-nCoV) was reported in Wuhan, China, which had subsequently affected 210 countries worldwide. In general, COVID-19 is an acute resolved disease but it can also be deadly, with a 2% case fatality rate.
+
+The COVID-19 vaccination in Indonesia is an ongoing mass immunisation in response to the COVID-19 pandemic in Indonesia. On 13 January 2021, the program commenced when President Joko Widodo was vaccinated at the presidential palace. In terms of total doses given, Indonesia ranks third in Asia and fifth in the world.
+
+According to wikipedia, as of 5 February 2023 at 18:00 WIB (UTC+7), 204,266,655 people had received the first dose of the vaccine and 175,131,893 people had been fully vaccinated; 69,597,474 of them had been inoculated with the booster or the third dose, while 1,585,164 had received the fourth dose. Jakarta has the highest percentage of population fully vaccinated with 103.46%, followed by Bali and Special Region of Yogyakarta with 85.45% and 83.02% respectively.
+
+Despite its compactness, the cumulative vaccination rate are not evenly distributed within DKI Jakarta. The question is where are the sub-districts with relatively higher number of vaccination rate and how they changed over time.
+
+------------------------------------------------------------------------
+
+## 1.2 Objectives
+
+Exploratory Spatial Data Analysis (ESDA) hold tremendous potential to address complex problems facing society. In this study, you are tasked to apply appropriate Local Indicators of Spatial Association (LISA) and Emerging Hot Spot Analysis (EHSA) to undercover the spatio-temporal trends of COVID-19 vaccination in DKI Jakarta.
+
+------------------------------------------------------------------------
+
+## 1.3 The Task
+
+**Choropleth Mapping and Analysis**
+
+-   Compute the monthly vaccination rate from July 2021 to June 2022 at sub-district level
+
+-   Prepare the monthly vaccination rate maps by using appropriate tmap functions
+
+-   Describe the spatial patterns revealed by the choropleth maps (not more than 200 words)
+
+**Local Gi\* Analysis**
+
+-   Compute local Gi\* values of the monthly vaccination rate
+
+-   Display the Gi\* maps of the monthly vaccination rate. The maps should only display the significant (i.e. p-value \< 0.05)
+
+-   With reference to the analysis results, draw statistical conclusions (not more than 250 words)
+
+**Emerging Hot Spot Analysis (EHSA)**
+
+-   Perform Mann-Kendall Test by using the spatio-temporal local Gi\* values
+
+-   Select three sub-districts and describe the temporal trends revealed (not more than 250 words)
+
+-   Prepare a EHSA map of the Gi\* values of vaccination rate. The maps should only display the significant (i.e. p-value \< 0.05)
+
+-   With reference to the EHSA map prepared, describe the spatial patterns revealed (not more than 250 words)
+
+------------------------------------------------------------------------
+
+# 2 Getting Started
+
+## 2.1 Importing Modules
+
+The following R packages will be used for this analysis:
+
+-   tidyverse - Used for data science tasks
+
+-   funModeling - Used for data cleaning, importance variable analysis and model performance
+
+-   tmap - Used for creating thematic maps
+
+-   sf - Used for importing, managing and processing geospatial data
+
+-   sfdep - Used for geometry neighbours and local indicators of spatial association
+
+-   maptools - Used for manipulating geographic data
+
+-   raster - Used to manipulate and models gridded spatial data
+
+-   spatstat - Used for point pattern analysis
+
+-   readxl: Used to read Excel into R
+
+```{r}
+pacman::p_load(tidyverse, funModeling, tmap, sf, sfdep, maptools, raster, spatstat, readxl)
+```
+
+------------------------------------------------------------------------
+
+## 2.2 Geospatial Data
+
+### 2.2.1 Importing Data
+
+```{r}
+geoJAR <- st_read("data/geospatial/",
+                  layer = "BATAS_DESA_DESEMBER_2019_DUKCAPIL_DKI_JAKARTA") %>%
+  st_transform(crs=26392)
+```
+
+### 2.2.2 Data Pre-Processing
+
+#### 2.2.2.1 Remove Missing Values
+
+```{r}
+geoJAR[rowSums(is.na(geoJAR))!=0,]
+```
+
+```{r}
+geoJAR <- na.omit(geoJAR,c("DESA_KELUR"))
+```
+
+#### 2.2.2.2 Transform Coordinate System
+
+```{r}
+st_crs(geoJAR)
+```
+
+```{r}
+geoJAR23845 <- st_set_crs(geoJAR, 23845)
+```
+
+```{r}
+st_crs(geoJAR23845)
+```
+
+### 2.2.3 Data Visualisation
+
+```{r}
+plot(st_geometry(geoJAR23845))
+```
+
+#### 2.2.3.1 Retain Relavant Columns
+
+```{r}
+geoJAR23845 <- geoJAR23845 %>%
+  dplyr::select(c(1:9))
+```
+
+#### 2.2.3.2 Removing Outer Islands
+
+```{r}
+jar_main <- geoJAR23845 %>%
+  filter(KAB_KOTA %in%
+           c("JAKARTA BARAT",
+             "JAKARTA PUSAT",
+             "JAKARTA UTARA",
+             "JAKARTA SELATAN",
+             "JAKARTA TIMUR"))
+```
+
+#### 2.2.3.3 Renaming Columns
+
+```{r}
+jar_main <- jar_main %>%
+  dplyr::rename(
+    object_id = OBJECT_ID,
+    province = PROVINSI,
+    city = KAB_KOTA,
+    district = KECAMATAN,
+    village_code = KODE_DESA,
+    village = DESA,
+    sub_district = DESA_KELUR,
+    code = KODE,
+    total_population = JUMLAH_PEN
+  )
+```
+
+```{r}
+glimpse(jar_main)
+```
+
+#### 2.2.3.4 Checking Map
+
+```{r}
+tm_shape(jar_main) + 
+  tm_polygons("city")
+```
+
+## 2.3 Aspatial Data
+
+### 2.3.1 Importing Data
+
+```{r}
+vaccinated <- list()
+list <- list.files(path = "data/aspatial/", pattern = "*.xlsx")
+setwd("data/aspatial/")
+for (i in 1:length(list)){
+  vaccinated[i] <- lapply(list[i], FUN = read_excel)
+}
+```
