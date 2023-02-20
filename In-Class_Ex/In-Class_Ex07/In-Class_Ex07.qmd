@@ -1,0 +1,12 @@
+---
+title: "In-Class Exercise 7: Global Measures of Spatial Autocorrelation"
+date: "20 February 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute:
+  eval: true
+  echo: true
+  message: false
+  warning: false
+editor: visual
+---
