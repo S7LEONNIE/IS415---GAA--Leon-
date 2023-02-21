@@ -8,7 +8,7 @@
 
 <meta name="dcterms.date" content="2023-02-20">
 
-<title>Leon’s IS415 (GAA) Journey - In-Class Exercise 7: Global Measures of Spatial Autocorrelation</title>
+<title>Leon’s IS415 (GAA) Journey - In-Class Exercise 7: GLSA</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -222,7 +222,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   </li>  
         <li>
     <a class="dropdown-item" href="../../In-Class_Ex/In-Class_Ex07/In-Class_Ex07.html">
- <span class="dropdown-text">In-Class Exercise 7</span></a>
+ <span class="dropdown-text">In-Class Exercise 7: GLSA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-Class_Ex/In-Class_Ex07/In-Class_Ex07_2.html">
+ <span class="dropdown-text">In-Class Exercise 7: EHSA</span></a>
   </li>  
     </ul>
   </li>
@@ -304,12 +308,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#visualising-gi" id="toc-visualising-gi" class="nav-link" data-scroll-target="#visualising-gi">4.2 Visualising Gi*</a></li>
   <li><a href="#visualising-p-value-of-hcsa" id="toc-visualising-p-value-of-hcsa" class="nav-link" data-scroll-target="#visualising-p-value-of-hcsa">4.3 Visualising p-value of HCSA</a></li>
   </ul></li>
-  <li><a href="#ehsa" id="toc-ehsa" class="nav-link" data-scroll-target="#ehsa">EHSA</a></li>
-  <li><a href="#getting-started-1" id="toc-getting-started-1" class="nav-link" data-scroll-target="#getting-started-1">1 Getting Started</a>
-  <ul class="collapse">
-  <li><a href="#importing-module" id="toc-importing-module" class="nav-link" data-scroll-target="#importing-module">1.1 Importing Module</a></li>
-  <li><a href="#importing-data-1" id="toc-importing-data-1" class="nav-link" data-scroll-target="#importing-data-1">1.2 Importing Data</a></li>
-  </ul></li>
   </ul>
 </nav>
     </div>
@@ -318,7 +316,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">In-Class Exercise 7: Global Measures of Spatial Autocorrelation</h1>
+<h1 class="title">In-Class Exercise 7: GLSA</h1>
 </div>
 
 
@@ -336,7 +334,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">February 20, 2023</p>
+      <p class="date-modified">February 21, 2023</p>
     </div>
   </div>
     
@@ -615,61 +613,6 @@ Geodetic CRS:  WGS 84
 <div class="cell-output-display">
 <p><img src="In-Class_Ex07_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
 </div>
-</div>
-</section>
-</section>
-<section id="ehsa" class="level1">
-<h1>EHSA</h1>
-</section>
-<section id="getting-started-1" class="level1">
-<h1>1 Getting Started</h1>
-<section id="importing-module" class="level2">
-<h2 class="anchored" data-anchor-id="importing-module">1.1 Importing Module</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, tmap, tidyverse, plotly)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="importing-data-1" class="level2">
-<h2 class="anchored" data-anchor-id="importing-data-1">1.2 Importing Data</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, </span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">layer =</span> <span class="st">"Hunan"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `Hunan' from data source 
-  `C:\Users\la935\Desktop\IS415 - GAA\IS415 - GAA (New)\In-Class_Ex\In-Class_Ex07\data\geospatial' 
-  using driver `ESRI Shapefile'
-Simple feature collection with 88 features and 7 fields
-Geometry type: POLYGON
-Dimension:     XY
-Bounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812
-Geodetic CRS:  WGS 84</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>GDPPC <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Hunan_GDPPC.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>GDPPC_st <span class="ot">&lt;-</span> <span class="fu">spacetime</span>(GDPPC, hunan,</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>                      <span class="at">.loc_col =</span> <span class="st">"Country"</span>,</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">.time_col =</span> <span class="st">"Year"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<pre class="{#|eval:false}"><code>{r}
-GDPPC_nb &lt;- GDPPC_st %&gt;%
-  activate("geometry") %&gt;%
-  mutate(
-    nb = include_self(st_contiguity(geometry)),
-    wt = st_weights(nb)
-  ) %&gt;%
-  set_nbs("nb") %&gt;%
-  set_wts("wt")</code></pre>
-<pre class="{#|eval:false}"><code>{r}
-gi_stars &lt;- GDPPC_nb %&gt;%
-  group_by(Year) %&gt;%
-  mutate(gi_star = local_gstar_perm(
-    GDPPC, nb, wt, nsim = 99)) %&gt;%
-  tidyr::unnest(gi_star)</code></pre>
-<div class="cell">
-
 </div>
 
 
