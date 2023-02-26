@@ -259,12 +259,12 @@ jun2022 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (30 Juni 2
 ### 2.3.2 Creation of Pre-Processing Function & Keeping Relevant Columns
 
 ```{r}
-aspatial_preprocess <- function(filepath){
-  result <- read_xlsx(filepath)[-1,]
+preprocess <- function(files){
+  result <- read_xlsx(files)[-1,]
   
-  startpoint <- gregexpr(pattern="Kelurahan", filepath)[[1]] + 11
+  startpoint <- gregexpr(pattern="Kelurahan", files)[[1]] + 11
   
-  result$Date <- substr(filepath, startpoint, nchar(filepath)-6)
+  result$Date <- substr(files, startpoint, nchar(files)-6)
   
   result <- result %>% 
     select("Date", 
@@ -281,7 +281,7 @@ aspatial_preprocess <- function(filepath){
 ```{r}
 file_list <-list.files(path = "data/aspatial", pattern = "*.xlsx", full.names=TRUE)
 
-df_list <- lapply(seq_along(file_list), function(x) aspatial_preprocess(file_list[x]))
+df_list <- lapply(seq_along(file_list), function(x) preprocess (file_list[x]))
 ```
 
 ```{r}
