@@ -1,0 +1,13 @@
+name: ShinyWorkshopEx
+title: ShinyWorkshopEx
+username:
+account: leontanliyang
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8419601
+bundleId: 6891641
+url: https://leontanliyang.shinyapps.io/ShinyWorkshopEx/
+when: 1677482667.31414
+lastSyncTime: 1677482667.31415
+asMultiple: FALSE
+asStatic: FALSE
