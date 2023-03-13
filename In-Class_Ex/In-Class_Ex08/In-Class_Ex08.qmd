@@ -1,5 +1,5 @@
 ---
-title: "Hands-On Exercise 8: Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method"
+title: "In-Class Exercise 8: Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method"
 date: "6 March 2023"
 date-modified: "`r Sys.Date()`"
 format: html
