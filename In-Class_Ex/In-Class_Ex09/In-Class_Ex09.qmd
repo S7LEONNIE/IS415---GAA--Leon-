@@ -155,24 +155,10 @@ test_data <- cbind(test_data, coords_test) %>%
 
 ## Predicting with Test Data
 
-```{#|Eval: false}
-{r}
-gwRF_pred <- predict.grf(gwRF_adaptive, 
-                         test_data,
-                         x.var.name = "X",
-                         y.var.name = "Y",
-                         local.w = 1,
-                         global.w = 0)
-```
+`{#|Eval: false} {r} gwRF_pred <- predict.grf(gwRF_adaptive,                           test_data,                          x.var.name = "X",                          y.var.name = "Y",                          local.w = 1,                          global.w = 0)`
 
 ## Converting the Predicting Output into a Data Frame
 
-```{#|Eval: false}
-{r}
-gwRF_pred_df <- as.data.frame(gwRF_pred)
-```
+`{#|Eval: false} {r} gwRF_pred_df <- as.data.frame(gwRF_pred)`
 
-```{#|Eval: false}
-{r}
-gwRF_test_predict <- cbind(test_data, predict_grf_df)
-```
+`{#|Eval: false} {r} gwRF_test_predict <- cbind(test_data, predict_grf_df)`
