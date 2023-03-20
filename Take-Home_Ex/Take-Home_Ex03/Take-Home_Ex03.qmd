@@ -993,6 +993,7 @@ train_data_sp
 The code chunk below is used to determine adaptive bandwidth and CV method is used to determine the optimal bandwidth.
 
 ```{r}
+#| eval: false
 bw_adaptive <- bw.gwr(PRICE ~ STOREY + AREA_SQM + PROX_BUS + PROX_CBD +
                    PROX_CHILDCARE + PROX_ELDERCARE + PROX_GOODPRIMARY +
                    PROX_HAWKER + PROX_MRT + PROX_PARK + PROX_SHOPPING +
