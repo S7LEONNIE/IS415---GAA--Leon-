@@ -1,0 +1,282 @@
+---
+title: "In-Class Exercise 11: Accessbility Models"
+date: "20 March 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute:
+  eval: true
+  echo: true
+  message: false
+  warning: false
+editor: visual
+---
+
+# Getting Started
+
+## Importing Module
+
+```{r}
+pacman::p_load(tmap,sf,sp,caret,stplanr,reshape2,broom, tidyverse)
+```
+
+## Importing OD Data
+
+```{r}
+odbus <- read_csv("data/aspatial/origin_destination_bus_202210.csv")
+```
+
+```{r}
+odbus$ORIGIN_PT_CODE <-
+  as.factor(odbus$ORIGIN_PT_CODE)
+
+odbus$DESTINATION_PT_CODE <-
+  as.factor(odbus$DESTINATION_PT_CODE)
+```
+
+# Extracting the Study Data
+
+```{r}
+odbus7_9 <- odbus %>%
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 7 &
+           TIME_PER_HOUR <= 9) %>%
+  group_by(ORIGIN_PT_CODE,
+           DESTINATION_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+```
+
+```{r}
+write_rds(odbus7_9, "data/rds/odbus7_9.rds")
+```
+
+# Working with Geospatial Data
+
+## Importing Geospatial Data
+
+```{r}
+busstop <- st_read(dsn = "data/geospatial",
+                   layer = "BusStop") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+mpsz <- st_read(dsn = "data/geospatial",
+                layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
+```
+
+## Combining Bus Stop with MPSZ
+
+```{r}
+busstop_mpsz <- st_intersection(busstop, mpsz) %>%
+  select(BUS_STOP_N, SUBZONE_C) %>%
+  st_drop_geometry()
+```
+
+Note: Bus Stops in Malaysia are drop as it's not part of Singapore's Subzone
+
+```{r}
+write_rds(busstop_mpsz, "data/rds/busstop_mpsz.rds")
+```
+
+```{r}
+od_data <- left_join(odbus7_9, busstop_mpsz,
+                     by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_SZ = SUBZONE_C,
+         DESTIN_BS = DESTINATION_PT_CODE)
+```
+
+### Finding Duplicates
+
+```{r}
+duplicate <- od_data %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+```
+
+### Removing Duplicates
+
+```{r}
+od_data <- unique(od_data)
+```
+
+### Finding Duplicates (Confirmation)
+
+```{r}
+duplicate <- od_data %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+
+duplicate
+```
+
+## Left Join for Destination Bus Stop
+
+```{r}
+od_data <- left_join(od_data, busstop_mpsz,
+                     by = c("DESTIN_BS" = "BUS_STOP_N"))
+```
+
+### Finding Duplicates
+
+```{r}
+duplicate2 <- od_data %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+
+duplicate2
+```
+
+### Removing Duplicate
+
+```{r}
+od_data <- unique(od_data)
+```
+
+### Finding Duplicates (Confirmation)
+
+```{r}
+duplicate2 <- od_data %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+
+duplicate2
+```
+
+### Renaming to DESTIN_SZ
+
+```{r}
+od_data <- od_data %>%
+  rename(DESTIN_SZ = SUBZONE_C) %>%
+  drop_na()
+```
+
+```{r}
+write_rds(od_data, "data/rds/od_data.rds")
+```
+
+# Visualising MPSZ
+
+```{r}
+tmap_mode("plot")
+qtm(mpsz)
+```
+
+# Isolating SUBZONE_C into a new df
+
+```{r}
+mpsz <- mpsz[order(mpsz$SUBZONE_C),]
+head(mpsz, 10)
+```
+
+# Computing Distance Matrix
+
+## Transform to Spatial Polygon
+
+```{r}
+mpsz_sp <- as(mpsz, "Spatial")
+```
+
+```{r}
+dist <- spDists(mpsz_sp)
+
+dist
+```
+
+## Creating a Subzone Name List
+
+```{r}
+sz_names <- mpsz$SUBZONE_C
+```
+
+## Attaching Subzone Name to Row & Column for Matrix
+
+```{r}
+colnames(dist) <- paste0(sz_names)
+rownames(dist) <- paste0(sz_names)
+```
+
+## Pivoting Distance Value by SUBZONE_C
+
+```{r}
+distPair <- melt(dist) %>%
+  rename(dist = value)
+head(distPair, 10)
+```
+
+## Updating Intra-Zonal Distances
+
+```{r}
+distPair %>%
+  filter(dist > 0) %>%
+  summary()
+```
+
+```{r}
+distPair$dist <- ifelse(distPair$dist == 0,
+                        50, distPair$dist)
+```
+
+Swap the 0 to 50 in order to calculate the distance matrix
+
+## Renaming the Origin and Destination Field
+
+```{r}
+distPair <- distPair %>%
+  rename(orig = Var1,
+         dest = Var2)
+```
+
+## Aggregate Data
+
+```{r}
+flow_data <- od_data %>%
+  group_by(ORIGIN_SZ, DESTIN_SZ) %>%
+  summarise(TRIPS = sum(TRIPS))
+```
+
+## Reading Pop Data
+
+```{r}
+pop <- read_csv("data/aspatial/pop.csv")
+```
+
+## Left Join Pop Data & MPSZ
+
+```{r}
+pop <- pop %>%
+  left_join(mpsz,
+            by = c("PA" = "PLN_AREA_N",
+                   "SZ" = "SUBZONE_N")) %>%
+  select(1:6) %>%
+  rename(SZ_NAME = SZ,
+         SZ = SUBZONE_C)
+```
+
+## Update Flow Data with Distance Information
+
+```{r}
+flow_data1 <- flow_data %>%
+  left_join(distPair,
+            by = c("ORIGIN_SZ" = "orig",
+                   "DESTIN_SZ" = "dest"))
+```
+
+## Update Flow Data with Pop
+
+```{r}
+flow_data1 <- flow_data1 %>%
+  left_join(pop,
+            by = c(ORIGIN_SZ = "SZ")) %>%
+  rename(ORIGIN_AGE7_12 = AGE7_12,
+         ORIGIN_AGE13_24 = AGE13_24,
+         ORIGIN_AGE25_64 = AGE25_64) %>%
+  select(-c(PA, SZ_NAME))
+```
+
+## 

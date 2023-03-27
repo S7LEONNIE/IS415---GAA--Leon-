@@ -28,11 +28,11 @@ In this take-home exercise, you are tasked to predict HDB resale prices at the s
 For the purpose of this take-home exercise, [`HDB Resale Flat Prices`](https://data.gov.sg/dataset/resale-flat-prices) provided by Data.gov.sg should be used as the core data set. The study should focus on either three-room, four-room or five-room flat and transaction period should be from 1st January 2021 to 31st December 2022. The test data should be January and February 2023 resale prices.
 
 | **Aspatial Data Set** | **Source**                                                    |
-|-----------------------|-------------------------------------------------|
+|-----------------------|---------------------------------------------------------------|
 | HDB Resale Data       | [Data.gov.sg](https://data.gov.sg/dataset/resale-flat-prices) |
 
 | Geospatial Data Set                | Source                                                                                                                                                          |
-|--------------------|----------------------------------------------------|
+|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Master Plan 2019 Sub-Zone Boundary | Prof. Kam                                                                                                                                                       |
 | Hawker Centres                     | [OneMap](https://www.onemap.gov.sg/main/v2/themes)                                                                                                              |
 | Childcare Centres                  | [OneMap](https://www.onemap.gov.sg/main/v2/themes)                                                                                                              |
@@ -47,7 +47,7 @@ For the purpose of this take-home exercise, [`HDB Resale Flat Prices`](https://d
 ## 1.4 Acknowledgement
 
 | Name                  | Source                                                                                                                                                     |
-|-------------------|-----------------------------------------------------|
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Prof. Kam             | [Hands-On Ex 8](https://r4gdsa.netlify.app/chap13.html); [In-Class Ex 9](https://is415-gaa-tskam.netlify.app/in-class_ex/in-class_ex09/in-class_ex09_gwml) |
 | Megan Sim             | [Take-Home Ex 3](https://is415-msty.netlify.app/posts/2021-10-25-take-home-exercise-3/)                                                                    |
 | Nor Aisyah Binte Ajit | [Take-Home Ex 3](https://aisyahajit2018-is415.netlify.app/posts/2021-11-07-take-home-exercise-3/)                                                          |
